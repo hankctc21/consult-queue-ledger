@@ -1,0 +1,21 @@
+name: Verify Kafka and Redis
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  queue-recovery:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install --only-binary=:all: -r requirements.txt
+      - run: python -m unittest discover -s tests -v
+      - run: docker compose up -d --wait --wait-timeout 150
+      - run: python -m tests.integration
+      - if: failure()
+        run: docker compose logs --tail 100
+      - if: always()
+        run: docker compose down -v
