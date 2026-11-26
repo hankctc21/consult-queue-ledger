@@ -98,7 +98,9 @@ def main():
         view.db.delete(*view.keys)
         view.db.close()
         from confluent_kafka.admin import AdminClient
-        AdminClient({"bootstrap.servers":config.BROKERS}).delete_topics([config.TOPIC])[config.TOPIC].result(15)
+        admin = AdminClient({"bootstrap.servers": config.BROKERS})
+        deletion = admin.delete_topics([config.TOPIC])
+        deletion[config.TOPIC].result(timeout=30)
 
 
 if __name__ == "__main__":
